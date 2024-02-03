@@ -1,9 +1,14 @@
-#!/home/jack/.venv/bin/python3
+#!/usr/bin/python3
+# Program to modify audio files so that Toyota vehicles will play them
+# in the correct order from a USB stick.
+# https://github.com/JChristensen/Toyota_Music
+# Copyright (C) 2024 by Jack Christensen and licensed under
+# GNU GPL v3.0, https://www.gnu.org/licenses/gpl.html
 
 import argparse
 import logging
 import logging.handlers
-import mutagen
+import mutagen          # https://mutagen.readthedocs.io/
 import os
 import pathlib
 import re
@@ -17,8 +22,7 @@ class Toyota_Tags:
     """
 
     def __init__(self, verbose=False, quiet=False):
-        """Initialize attributes."""
-        self.logger = logging.getLogger(__name__)
+        """Initialize attributes and initiate logging."""
         self.TOYOTA_COMMENT = 'Title modified for Toyota'
         self.verbose = verbose
         self.quiet = quiet
@@ -29,7 +33,22 @@ class Toyota_Tags:
         self.files_not_audio = 0
         self.start_time = 0
         self.elapsed_time = 0
-        self.dir_level = 0
+
+        # create a log file in the same directory as the program
+        progpath = os.path.dirname(os.path.realpath(__file__))
+        prognamepy = os.path.basename(__file__)     # name.py
+        progname = prognamepy.split(sep='.')[0]     # name only
+        LOG_FILENAME = f'{progpath}{os.sep}{progname}.log'
+        # check for an existing log file. if it exists, we force a rollover below.
+        have_previous_logfile = pathlib.Path(LOG_FILENAME).exists()
+
+        self.logger = logging.getLogger(progname)
+        handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, backupCount=2)
+        self.logger.addHandler(handler)
+        formatter = logging.Formatter(fmt='%(levelname)s:%(message)s')
+        handler.setFormatter(formatter)
+        self.logger.setLevel(logging.DEBUG)
+        if have_previous_logfile: handler.doRollover()
 
     def modify_tag(self, filename):
         """ Modify the title tag on the given audio file, and add a comment
@@ -84,7 +103,8 @@ class Toyota_Tags:
             if self.verbose: print(f'Not an audio file: {filename}')
 
     def make_new_title(self, track, title):
-        """ Need a docstring.
+        """ Given track and title, return a new title that is prefixed
+        with the track number.
         """
         trk = track[0]
         ttl = title[0]
@@ -113,27 +133,37 @@ class Toyota_Tags:
 
     def print_stats(self):
         """Print the number of files processed, etc."""
-        if not self.quiet:
-            print(f'---- End run, elapsed time {self.elapsed_time} seconds.')
-            print(f'Files processed:         {self.files_processed}')
-            print(f'Audio files modified:    {self.files_modified}')
-            print(f'Audio files skipped:     {self.files_skipped}')
-            print(f'Unsupported audio files: {self.files_unsupported}')
-            print(f'Non-audio files:         {self.files_not_audio}')
+        finish_msg = \
+            f'End run, elapsed time {self.elapsed_time:.3f} seconds.\n' \
+            f'Files processed:         {self.files_processed}\n' \
+            f'Audio files modified:    {self.files_modified}\n' \
+            f'Audio files skipped:     {self.files_skipped}\n' \
+            f'Unsupported audio files: {self.files_unsupported}\n' \
+            f'Non-audio files:         {self.files_not_audio}'
+        self.logger.info(finish_msg)
+        if not self.quiet: print(finish_msg)
 
 def main():
-    """ Need a docstring.
+    """ Program to modify audio files so that Toyota vehicles will play them
+    in the correct order from a USB stick.
     """
     # command line arguments
-    parser = argparse.ArgumentParser(description='Program to modify audio '
-        'files for Toyota vehicles so that they play in the correct order.',
-        epilog='Many Toyota vehicles use the title tag rather than the track '
-        'number tag to sort audio files. This makes it difficult to play '
-        'tracks in the original order. To work around this problem, this '
-        'program will modify the title tag by adding the track number to '
-        'it as a prefix. \n \n '
-        'This program will recurse through the directory given by "path" '
-        'and process all audio files under it.')
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=
+            'Program to modify audio files so that Toyota vehicles will play them\n'
+            'in the correct order from a USB stick.',
+        epilog=
+            'Many Toyota vehicles use the title tag rather than the track number tag\n'
+            'to sort audio files played from a USB stick. This makes it difficult to\n'
+            'play tracks in the original order.\n\n'
+            'To work around this problem, this program will modify the title tag by\n'
+            'adding the track number to it as a prefix.\n\n'
+            'The program will recurse through the directory given by "path" and process\n'
+            'all audio files under it. Currently the program can process MP3 and\n'
+            'OggVorbis audio files. A log file is written each time the program\n'
+            'is run, noting any failures and other detail information. Log files\n'
+            'for the last three runs are kept; older logs are automatically deleted.')
     opt_group = parser.add_mutually_exclusive_group()
     opt_group.add_argument('-v', '--verbose',
         help='print names of the audio files as they are processed', action='store_true')
@@ -142,19 +172,6 @@ def main():
     parser.add_argument('path', help='directory containing the audio files to be modified')
     args = parser.parse_args()
 
-    # create a log file in the same directory as the program
-    progpath = os.path.dirname(os.path.realpath(__file__))
-    prognamepy = os.path.basename(__file__)     # name.py
-    progname = prognamepy.split(sep='.')[0]     # name only
-    LOG_FILENAME = f'{progpath}{os.sep}{progname}.log'
-    have_previous_logfile = pathlib.Path(LOG_FILENAME).exists()
-    logger = logging.getLogger(__name__)
-    #logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
-    handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, backupCount=4)
-    logger.addHandler(handler)
-    logger.setLevel(logging.DEBUG)
-                
-    if have_previous_logfile: handler.doRollover()
     tags = Toyota_Tags(verbose=args.verbose, quiet=args.quiet)
     tags.modify_tags(pathlib.Path(args.path))
 
