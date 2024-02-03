@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-# Program to modify audio files so that Toyota vehicles will play them
-# in the correct order from a USB stick.
+# Program to modify audio files on a USB stick so that Toyota vehicles
+# will play them in the correct order.
 # https://github.com/JChristensen/Toyota_Music
 # Copyright (C) 2024 by Jack Christensen and licensed under
 # GNU GPL v3.0, https://www.gnu.org/licenses/gpl.html
@@ -17,7 +17,7 @@ import time
 
 class Toyota_Tags:
     """A class to do bulk modification of title tags in audio files
-    so that Toyota vehicles can sort them in the proper order.
+    so that Toyota vehicles will sort them in the proper order.
     MP3 and OggVorbis audio files can be processed.
     """
 
@@ -144,8 +144,8 @@ class Toyota_Tags:
         if not self.quiet: print(finish_msg)
 
 def main():
-    """ Program to modify audio files so that Toyota vehicles will play them
-    in the correct order from a USB stick.
+    """ Program to modify audio files on a USB stick so that Toyota vehicles
+    will play them in the correct order.
     """
     # command line arguments
     parser = argparse.ArgumentParser(

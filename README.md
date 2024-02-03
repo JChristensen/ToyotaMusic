@@ -13,7 +13,7 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/gpl.html>
 
 ## Overview
-This is a command-line Python program to modify audio files so that Toyota vehicles will play them in the correct order from a USB stick.
+This is a command-line Python program to modify audio files on a USB stick so that Toyota vehicles will play them in the correct order.
 
 Many Toyota vehicles use the title tag rather than the track number tag
 to sort audio files played from a USB stick. This makes it difficult to
@@ -22,7 +22,7 @@ play tracks in the original order ([for](https://www.toyotanation.com/threads/mp
 To work around this problem, this program will modify the title tag by
 adding the track number to it as a prefix.
 
-The program will recurse through the directory given by "path" and process
+The program will recurse through the directory given and process
 all audio files under it. Currently the program can process MP3 and
 OggVorbis audio files. A log file is written each time the program
 is run, noting any failures and other detail information. Log files
