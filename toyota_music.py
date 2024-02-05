@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # Program to modify audio files on a USB stick so that Toyota vehicles
 # will play them in the correct order.
-# https://github.com/JChristensen/Toyota_Music
+# https://github.com/JChristensen/ToyotaMusic
 # Copyright (C) 2024 by Jack Christensen and licensed under
 # GNU GPL v3.0, https://www.gnu.org/licenses/gpl.html
 
@@ -15,7 +15,7 @@ import re
 import sys
 import time
 
-class Toyota_Tags:
+class ToyotaTags:
     """A class to do bulk modification of title tags in audio files
     so that Toyota vehicles will sort them in the proper order.
     MP3 and OggVorbis audio files can be processed.
@@ -50,7 +50,22 @@ class Toyota_Tags:
         self.logger.setLevel(logging.DEBUG)
         if have_previous_logfile: handler.doRollover()
 
-    def modify_tag(self, filename):
+    def modify_tags(self, d, level=0):
+        """ Recurse through the given directory, attempt to modify
+        the title tag on each file.
+        """
+        if level == 0: self.start_time = time.time_ns()
+        for child in d.iterdir():
+            if child.is_dir():
+                self.modify_tags(child, level+1)
+            else:
+                self._modify_tag(child)
+        if level == 0:
+            self.elapsed_time = (time.time_ns() - self.start_time) / 1e9
+            self._print_stats()
+        return
+
+    def _modify_tag(self, filename):
         """ Modify the title tag on the given audio file, and add a comment
         tag to indicate that the title has been modified.
         Skip modifying any files that already have the comment.
@@ -66,7 +81,7 @@ class Toyota_Tags:
                         self.logger.info(f'{filename} skipped, already has modified title.')
                         if self.verbose: print(f'Skipped: {filename}')
                 except Exception as e:
-                    new_title = self.make_new_title(filetype['tracknumber'], filetype['title'])
+                    new_title = self._make_new_title(filetype['tracknumber'], filetype['title'])
                     filetype['title'] = new_title
                     filetype['comment'] = self.TOYOTA_COMMENT
                     filetype.save()
@@ -85,7 +100,7 @@ class Toyota_Tags:
                             if self.verbose: print(f'Skipped: {filename}')
                 else:
                     audio = mutagen.easyid3.EasyID3(filename)
-                    new_title = self.make_new_title(audio['tracknumber'], audio['title'])
+                    new_title = self._make_new_title(audio['tracknumber'], audio['title'])
                     audio['title'] = new_title
                     audio.RegisterTextKey('comment', 'COMM')
                     audio['comment'] = self.TOYOTA_COMMENT
@@ -102,7 +117,7 @@ class Toyota_Tags:
             self.logger.warning(f'{filename} may not be an audio file.')
             if self.verbose: print(f'Not an audio file: {filename}')
 
-    def make_new_title(self, track, title):
+    def _make_new_title(self, track, title):
         """ Given track and title, return a new title that is prefixed
         with the track number.
         """
@@ -116,22 +131,7 @@ class Toyota_Tags:
         self.logger.debug(f'Track: {trk} Title: {ttl} New title: {new_title}')
         return new_title
 
-    def modify_tags(self, d, level=0):
-        """ Recurse through the given directory, attempt to modify
-        the title tag on each file.
-        """
-        if level == 0: self.start_time = time.time_ns()
-        for child in d.iterdir():
-            if child.is_dir():
-                self.modify_tags(child, level+1)
-            else:
-                self.modify_tag(child)
-        if level == 0:
-            self.elapsed_time = (time.time_ns() - self.start_time) / 1e9
-            self.print_stats()
-        return
-
-    def print_stats(self):
+    def _print_stats(self):
         """Print the number of files processed, etc."""
         finish_msg = \
             f'End run, elapsed time {self.elapsed_time:.3f} seconds.\n' \
@@ -172,8 +172,8 @@ def main():
     parser.add_argument('path', help='directory containing the audio files to be modified')
     args = parser.parse_args()
 
-    tags = Toyota_Tags(verbose=args.verbose, quiet=args.quiet)
-    tags.modify_tags(pathlib.Path(args.path))
+    tt = ToyotaTags(verbose=args.verbose, quiet=args.quiet)
+    tt.modify_tags(pathlib.Path(args.path))
 
 if __name__ == '__main__':
     main()

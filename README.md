@@ -1,10 +1,10 @@
-# Toyota_Music
+# ToyotaMusic
 #### A program to work around a bug in Toyota infotainment systems.
-https://github.com/JChristensen/Toyota_Music  
+https://github.com/JChristensen/ToyotaMusic  
 README file  
 
 ## License
-Toyota_Music program Copyright (C) 2024 Jack Christensen GNU GPL v3.0
+ToyotaMusic program Copyright (C) 2024 Jack Christensen GNU GPL v3.0
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License v3.0 as published by the Free Software Foundation.
 
@@ -36,4 +36,6 @@ Other libraries used by this program are included in the Python Standard Library
 ## Running the program
 It is not recommended to run the program on your original music files. First, copy the desired files to a USB stick, then run the program on the USB stick.
 
-Music files modified by this program have been tested on a 2022 RAV4 and a 2023 Tacoma.
+Music files modified by this program have been tested on:
+- 2022 RAV4
+- 2023 Tacoma
