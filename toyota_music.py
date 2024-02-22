@@ -73,6 +73,7 @@ class ToyotaTags:
         self.files_processed += 1
         filetype = mutagen.File(filename, easy=True)
         if filetype:
+            # process OggVorbis file
             if type(filetype) is mutagen.oggvorbis.OggVorbis:
                 self.logger.debug(f'{filename} is an OggVorbis file.')
                 try:
@@ -88,6 +89,25 @@ class ToyotaTags:
                     self.files_modified += 1
                     self.logger.info(f'{filename} title was modified.')
                     if self.verbose: print(f'Modified: {filename}')
+
+            # process OggOpus file
+            elif type(filetype) is mutagen.oggopus.OggOpus:
+                self.logger.debug(f'{filename} is an OggOpus file.')
+                try:
+                    if filetype['Comment'][0] == self.TOYOTA_COMMENT:
+                        self.files_skipped += 1
+                        self.logger.info(f'{filename} skipped, already has modified title.')
+                        if self.verbose: print(f'Skipped: {filename}')
+                except Exception as e:
+                    new_title = self._make_new_title(filetype['tracknumber'], filetype['title'])
+                    filetype['title'] = new_title
+                    filetype['comment'] = self.TOYOTA_COMMENT
+                    filetype.save()
+                    self.files_modified += 1
+                    self.logger.info(f'{filename} title was modified.')
+                    if self.verbose: print(f'Modified: {filename}')
+
+            # process MP3 file
             elif type(filetype) is mutagen.mp3.EasyMP3:
                 self.logger.debug(f'{filename} is an MP3 file.')
                 audio = mutagen.easyid3.ID3(filename)
