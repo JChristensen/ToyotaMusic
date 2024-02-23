@@ -112,12 +112,16 @@ class ToyotaTags:
                 self.logger.debug(f'{filename} is an MP3 file.')
                 audio = mutagen.easyid3.ID3(filename)
                 cmt = audio.getall('COMM')
+                # check any pre-existing comments
+                already_modified = False
                 if cmt:
                     for c in cmt:
                         if c.text[0] == self.TOYOTA_COMMENT:
-                            self.files_skipped += 1
-                            self.logger.info(f'{filename} skipped, already has modified title.')
-                            if self.verbose: print(f'Skipped: {filename}')
+                            already_modified = True
+                if already_modified:
+                    self.files_skipped += 1
+                    self.logger.info(f'{filename} skipped, already has modified title.')
+                    if self.verbose: print(f'Skipped: {filename}')
                 else:
                     audio = mutagen.easyid3.EasyID3(filename)
                     new_title = self._make_new_title(audio['tracknumber'], audio['title'])
