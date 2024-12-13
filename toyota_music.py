@@ -148,7 +148,7 @@ class ToyotaTags:
         trk = track[0]
         ttl = title[0]
         # track number can be just 'nn' or 'nn/nn' so we use a regex to extract the first number
-        p = re.compile('\d+')
+        p = re.compile(r'\d+')
         m = p.match(trk)
         trk = m.group(0)
         new_title = str(int(trk)).zfill(2) + ' ' + ttl
